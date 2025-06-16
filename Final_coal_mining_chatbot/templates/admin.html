@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 40px;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    .container {
+      background: #fff;
+      width: 100%;
+      max-width: 1100px;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+      font-size: 2em;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 1em;
+    }
+
+    button {
+      background-color: #1976d2;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background-color: #125aa0;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    #status {
+      margin-top: 10px;
+      font-weight: bold;
+      color: green;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+      background-color: #fff;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+
+    th {
+      background-color: #1976d2;
+      color: white;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f9f9f9;
+    }
+
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+
+    td input {
+      width: 100%;
+      padding: 6px;
+      font-size: 0.95em;
+    }
+
+    .action-buttons button {
+      width: auto;
+      margin: 3px 0;
+    }
+
+    #login-section input {
+      margin-bottom: 10px;
+    }
+
+    .btn-success {
+      background-color: #4CAF50;
+    }
+
+    .btn-success:hover {
+      background-color: #3e8e41;
+    }
+
+    .btn-danger {
+      background-color: #f44336;
+    }
+
+    .btn-danger:hover {
+      background-color: #d32f2f;
+    }
+
+    .table-section {
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Admin Panel</h2>
+
+    <div id="login-section">
+      <input type="password" id="admin-password" placeholder="Enter Admin Password" />
+      <button onclick="verifyPassword()">Login</button>
+      <p id="login-error" style="color:red;"></p>
+    </div>
+
+    <div id="form-section" class="hidden">
+      <input type="text" id="enQuestion" placeholder="English Question" />
+      <input type="text" id="enAnswer" placeholder="English Answer" />
+      <input type="text" id="hiQuestion" placeholder="Hindi Question" />
+      <input type="text" id="hiAnswer" placeholder="Hindi Answer" />
+      <button class="btn-success" onclick="submitQA()">Add Question</button>
+      <p id="status"></p>
+
+      <div class="table-section">
+        <button onclick="loadQA()" style="padding:10px 20px; margin-bottom:15px;">Load All Q&A</button>
+        <table id="qaTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>English Question</th>
+              <th>English Answer</th>
+              <th>Hindi Question</th>
+              <th>Hindi Answer</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const PASSWORD = "admin123";
+
+    function verifyPassword() {
+        const entered = document.getElementById("admin-password").value;
+        if (entered === PASSWORD) {
+            document.getElementById("login-section").classList.add("hidden");
+            document.getElementById("form-section").classList.remove("hidden");
+        } else {
+            document.getElementById("login-error").textContent = "Incorrect password!";
+        }
+    }
+
+    function submitQA() {
+        const enQ = document.getElementById("enQuestion").value.trim();
+        const enA = document.getElementById("enAnswer").value.trim();
+        const hiQ = document.getElementById("hiQuestion").value.trim();
+        const hiA = document.getElementById("hiAnswer").value.trim();
+
+        const hasEnglish = enQ && enA;
+        const hasHindi = hiQ && hiA;
+
+        if (!hasEnglish && !hasHindi) {
+            alert("Please fill at least English or Hindi question & answer.");
+            return;
+        }
+
+        fetch("/add_qa", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                en_question: enQ,
+                en_answer: enA,
+                hi_question: hiQ,
+                hi_answer: hiA
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            document.getElementById("status").textContent = data.message;
+            document.getElementById("enQuestion").value = "";
+            document.getElementById("enAnswer").value = "";
+            document.getElementById("hiQuestion").value = "";
+            document.getElementById("hiAnswer").value = "";
+        })
+        .catch(() => {
+            document.getElementById("status").textContent = "Error saving entry.";
+        });
+    }
+
+    function loadQA() {
+        fetch("/get_all_qa")
+        .then(res => res.json())
+        .then(data => {
+            const tbody = document.querySelector("#qaTable tbody");
+            tbody.innerHTML = "";
+            data.entries.forEach((row, index) => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td><input value="${row.Question}" /></td>
+                    <td><input value="${row.Answer}" /></td>
+                    <td><input value="${row.Question_Hindi}" /></td>
+                    <td><input value="${row.Answer_Hindi}" /></td>
+                    <td class="action-buttons">
+                        <button class="btn-success" onclick="updateQA(${index}, this)">Save</button><br>
+                        <button class="btn-danger" onclick="deleteQA(${index})">Delete</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        });
+    }
+
+    function updateQA(index, btn) {
+        const row = btn.closest("tr").querySelectorAll("input");
+        const payload = {
+            index: index,
+            en_question: row[0].value.trim(),
+            en_answer: row[1].value.trim(),
+            hi_question: row[2].value.trim(),
+            hi_answer: row[3].value.trim()
+        };
+
+        fetch("/update_qa", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert(data.message);
+            loadQA();
+        });
+    }
+
+    function deleteQA(index) {
+        if (!confirm("Are you sure you want to delete this entry?")) return;
+
+        fetch("/delete_qa", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ index: index })
+        })
+        .then(res => res.json())
+        .then(data => {
+            alert(data.message);
+            loadQA();
+        });
+    }
+  </script>
+</body>
+</html>

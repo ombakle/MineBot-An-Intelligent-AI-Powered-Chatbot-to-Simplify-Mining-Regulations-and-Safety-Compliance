@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Voice Chatbot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            display: flex;
+            max-width: 1000px;
+            width: 95%;
+            margin: 20px;
+            background: #fff;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            position: relative;
+            min-height: 600px;
+        }
+        .robot-container {
+            flex: 0 0 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+        }
+        .chat-container {
+            flex: 1;
+            padding-left: 30px;
+            display: flex;
+            flex-direction: column;
+            max-height: 600px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2em;
+        }
+        .chat-history {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 10px 15px;
+            border-radius: 15px;
+            max-width: 80%;
+            animation: fadeIn 0.3s ease-in;
+        }
+        .user-message {
+            background: #e3f2fd;
+            margin-left: auto;
+            border-bottom-right-radius: 5px;
+        }
+        .bot-message {
+            background: #f5f5f5;
+            margin-right: auto;
+            border-bottom-left-radius: 5px;
+        }
+        .status-indicator {
+            text-align: center;
+            padding: 10px;
+            background: #e3f2fd;
+            border-radius: 5px;
+            font-size: 0.9em;
+            color: #1976d2;
+            margin-bottom: 20px;
+        }
+        .robot {
+            width: 100%;
+            height: auto;
+        }
+        .robot .antenna {
+            animation: blink 2s infinite;
+            transform-origin: center;
+        }
+        .robot .eye {
+            animation: glow 3s infinite;
+        }
+        .speaking .antenna {
+            animation: speak 0.5s infinite;
+        }
+        .listening .eye {
+            animation: pulse 1.5s infinite;
+        }
+        .volume-indicator {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 5px;
+        }
+        .volume-bar {
+            width: 4px;
+            height: 20px;
+            background: #4fc3f7;
+            border-radius: 2px;
+            transition: height 0.1s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes blink {
+            0%, 100% { fill: #ff5252; transform: scale(1); }
+            50% { fill: #ff8a80; transform: scale(1.1); }
+        }
+        @keyframes glow {
+            0%, 100% { fill: #4fc3f7; transform: scale(1); }
+            50% { fill: #29b6f6; transform: scale(1.1); }
+        }
+        @keyframes speak {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(5deg); }
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); fill: #4fc3f7; }
+            50% { transform: scale(1.2); fill: #29b6f6; }
+        }
+        .control-panel {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .control-button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background: #4CAF50;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .control-button:hover {
+            background: #45a049;
+        }
+        .control-button.stop {
+            background: #f44336;
+        }
+        .control-button.stop:hover {
+            background: #d32f2f;
+        }
+        .suggested-questions {
+    background: #fff;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    text-align: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+.suggested-questions h2 {
+    margin-bottom: 10px;
+    color: #333;
+}
+.suggested-questions ul {
+    list-style-type: none;
+    padding: 0;
+}
+.suggested-questions li {
+    background: #e3f2fd;
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background 0.3s ease-in-out;
+}
+.suggested-questions li:hover {
+    background: #90caf9;
+}
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="robot-container">
+            <svg class="robot" viewBox="0 0 200 300" xmlns="http://www.w3.org/2000/svg">
+                <!-- Antenna -->
+                <circle class="antenna" cx="100" cy="30" r="8" fill="#ff5252"/>
+                <rect x="98" y="30" width="4" height="20" fill="#90a4ae"/>
+                
+                <!-- Head -->
+                <rect x="60" y="50" width="80" height="70" rx="10" fill="#eceff1"/>
+                <rect x="70" y="60" width="60" height="50" rx="5" fill="#cfd8dc"/>
+                
+                <!-- Eyes -->
+                <circle class="eye" cx="85" cy="80" r="10" fill="#4fc3f7"/>
+                <circle class="eye" cx="115" cy="80" r="10" fill="#4fc3f7"/>
+                <circle cx="85" cy="80" r="5" fill="#fff"/>
+                <circle cx="115" cy="80" r="5" fill="#fff"/>
+                
+                <!-- Body -->
+                <rect x="50" y="130" width="100" height="120" rx="10" fill="#eceff1"/>
+                <rect x="60" y="140" width="80" height="100" rx="5" fill="#cfd8dc"/>
+                
+                <!-- Control Panel -->
+                <rect x="75" y="160" width="50" height="60" rx="5" fill="#90a4ae"/>
+                <circle cx="85" cy="175" r="5" fill="#4fc3f7"/>
+                <circle cx="100" cy="175" r="5" fill="#ff5252"/>
+                <circle cx="115" cy="175" r="5" fill="#66bb6a"/>
+                
+                <!-- Buttons -->
+                <rect x="80" y="190" width="40" height="5" rx="2" fill="#4fc3f7"/>
+                <rect x="80" y="200" width="40" height="5" rx="2" fill="#4fc3f7"/>
+                <rect x="80" y="210" width="40" height="5" rx="2" fill="#4fc3f7"/>
+            </svg>
+            <div class="volume-indicator">
+                <div class="volume-bar"></div>
+                <div class="volume-bar"></div>
+                <div class="volume-bar"></div>
+                <div class="volume-bar"></div>
+                <div class="volume-bar"></div>
+            </div>
+        </div>
+        <div class="chat-container">
+            <h1>Interactive Voice Chatbot</h1>
+            <div id="suggested-questions" class="suggested-questions">
+                <h2>Need help? Try asking:</h2>
+                <ul id="question-list"></ul>
+            </div>
+            
+            <div id="status" class="status-indicator">Click Start to begin</div>
+            <div id="chatHistory" class="chat-history"></div>
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <input type="text" id="textInput" placeholder="Type your question..." style="flex: 1; padding: 10px; border-radius: 5px; border: 1px solid #ccc;">
+                <button id="sendTextButton" class="control-button">Send</button>
+            </div>
+
+            <div class="control-panel">
+                <button id="startButton" class="control-button">Start Voice Recognition</button>
+                <button id="clearButton" class="control-button">Clear Chat</button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script>
+        const chatHistory = document.getElementById("chatHistory");
+        const statusDiv = document.getElementById("status");
+        const startButton = document.getElementById("startButton");
+        const clearButton = document.getElementById("clearButton");
+        const sendTextButton = document.getElementById("sendTextButton");
+        const textInput = document.getElementById("textInput");
+        const robot = document.querySelector('.robot');
+        const volumeBars = document.querySelectorAll('.volume-bar');
+    
+        let recognition = null;
+        let isRecognitionActive = false;
+        let selectedLanguage = 'en'; // Default
+        let silenceTimer = null;
+    
+        // Language Selector UI
+        const langSelect = document.createElement("select");
+        langSelect.innerHTML = `
+            <option value="en">English</option>
+            <option value="hi">हिन्दी</option>
+        `;
+        langSelect.style.marginBottom = "10px";
+        langSelect.style.padding = "6px 10px";
+        langSelect.style.borderRadius = "6px";
+        langSelect.style.alignSelf = "flex-end";
+        langSelect.onchange = () => {
+            selectedLanguage = langSelect.value;
+            loadSuggestedQuestions();
+        };
+        document.querySelector(".chat-container").prepend(langSelect);
+    
+        function initializeSpeechRecognition() {
+            if ('webkitSpeechRecognition' in window) {
+                recognition = new webkitSpeechRecognition();
+                recognition.lang = selectedLanguage === 'hi' ? 'hi-IN' : 'en-US';
+                recognition.interimResults = false;
+                recognition.continuous = true;
+                setupRecognitionHandlers();
+                return true;
+            }
+            addMessage("Speech recognition not supported in this browser.", "bot");
+            return false;
+        }
+    
+        function setupRecognitionHandlers() {
+            recognition.onstart = () => {
+                statusDiv.textContent = "Listening...";
+                startButton.textContent = "Stop";
+                startButton.classList.add('stop');
+                robot.classList.add('listening');
+                volumeInterval = setInterval(animateVolumeIndicator, 100);
+                isRecognitionActive = true;
+    
+                silenceTimer = setTimeout(() => {
+                    recognition.stop();
+                    isRecognitionActive = false;
+                    stopVolumeAnimation();
+                    statusDiv.textContent = "Voice recognition auto-stopped due to silence";
+                }, 4000);
+            };
+    
+            recognition.onspeechstart = () => {
+                if (silenceTimer) clearTimeout(silenceTimer);
+            };
+    
+            recognition.onspeechend = () => {
+                if (isRecognitionActive) {
+                    recognition.stop();
+                    isRecognitionActive = false;
+                    stopVolumeAnimation();
+                    statusDiv.textContent = "Stopped listening (user silent)";
+                }
+            };
+    
+            recognition.onend = () => {
+                clearInterval(volumeInterval);
+                stopVolumeAnimation();
+                robot.classList.remove('listening');
+                if (isRecognitionActive) {
+                    recognition.start();
+                } else {
+                    startButton.textContent = "Start Voice Recognition";
+                    startButton.classList.remove('stop');
+                    statusDiv.textContent = "Click Start to begin";
+                }
+            };
+    
+            recognition.onerror = (event) => {
+                addMessage(`Error: ${event.error}. Please try again.`, "bot");
+                statusDiv.textContent = "Error - Click Start to try again";
+                isRecognitionActive = false;
+                startButton.textContent = "Start Voice Recognition";
+                startButton.classList.remove('stop');
+                robot.classList.remove('listening');
+                clearInterval(volumeInterval);
+                stopVolumeAnimation();
+            };
+    
+            recognition.onresult = async (event) => {
+                const userInput = event.results[event.results.length - 1][0].transcript.trim();
+                addMessage(userInput, "user");
+                statusDiv.textContent = "Processing...";
+                fetchChatbotResponse(userInput);
+            };
+        }
+    
+        function animateVolumeIndicator() {
+            volumeBars.forEach(bar => {
+                const height = Math.random() * 20 + 5;
+                bar.style.height = `${height}px`;
+            });
+        }
+    
+        function stopVolumeAnimation() {
+            volumeBars.forEach(bar => bar.style.height = '5px');
+        }
+    
+        function fetchChatbotResponse(userInput) {
+            fetch('/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_input: userInput, language: selectedLanguage })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.response) {
+                    addMessage(data.response, "bot");
+                    speakResponse(data.response);
+                } else {
+                    addMessage("Sorry, I couldn't understand the question.", "bot");
+                }
+                statusDiv.textContent = "Listening...";
+            })
+            .catch(() => {
+                addMessage("An error occurred. Please try again later.", "bot");
+                statusDiv.textContent = "Listening...";
+            });
+        }
+    
+        function speakResponse(text) {
+            if (recognition && isRecognitionActive) {
+                recognition.stop(); // stop listening before speaking
+                isRecognitionActive = false;
+            }
+    
+            robot.classList.add('speaking');
+            const synth = window.speechSynthesis;
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = selectedLanguage === 'hi' ? 'hi-IN' : 'en-US';
+            utterance.onend = () => {
+                robot.classList.remove('speaking');
+                if (recognition && !isRecognitionActive) {
+                    isRecognitionActive = true;
+                    recognition.start();
+                }
+            };
+            synth.speak(utterance);
+        }
+    
+        startButton.addEventListener('click', () => {
+            if (!recognition) {
+                if (!initializeSpeechRecognition()) return;
+            }
+            recognition.lang = selectedLanguage === 'hi' ? 'hi-IN' : 'en-US';
+            if (!isRecognitionActive) {
+                recognition.start();
+            } else {
+                isRecognitionActive = false;
+                recognition.stop();
+                statusDiv.textContent = "Voice recognition stopped";
+                clearInterval(volumeInterval);
+                stopVolumeAnimation();
+            }
+        });
+    
+        clearButton.addEventListener('click', () => {
+            chatHistory.innerHTML = '';
+        });
+        sendTextButton.addEventListener('click', () => {
+            const userText = textInput.value.trim();
+            if (userText) {
+                addMessage(userText, "user");
+                fetchChatbotResponse(userText);
+                textInput.value = '';
+            }
+        });
+
+        textInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendTextButton.click();
+            }
+        });
+    
+        function addMessage(text, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', `${type}-message`);
+            messageDiv.textContent = text;
+            chatHistory.appendChild(messageDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+    
+        function loadSuggestedQuestions() {
+            fetch(`/random_questions?lang=${selectedLanguage}`)
+                .then(res => res.json())
+                .then(data => {
+                    const questionList = document.getElementById("question-list");
+                    questionList.innerHTML = "";
+                    if (data.questions) {
+                        data.questions.forEach(q => {
+                            const li = document.createElement("li");
+                            li.textContent = q;
+                            li.onclick = () => {
+                                addMessage(q, "user");
+                                fetchChatbotResponse(q);
+                            };
+                            questionList.appendChild(li);
+                        });
+                    }
+                });
+        }
+    
+        document.addEventListener("DOMContentLoaded", () => {
+            initializeSpeechRecognition();
+            loadSuggestedQuestions();
+        });
+    </script>
+    
+
+<!-- Simpler Redirect Button -->
+<button onclick="window.location.href='/admin'" style="position: absolute; top: 20px; right: 20px; padding: 10px 15px; background-color: #1976d2; color: white; border: none; border-radius: 5px; cursor: pointer;">
+    Admin
+</button>
+
+    
+
+
+</body>
+</html>
