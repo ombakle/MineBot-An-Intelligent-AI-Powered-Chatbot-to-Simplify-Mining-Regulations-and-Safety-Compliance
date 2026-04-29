@@ -1,0 +1,45 @@
+Project Structure
+MineBot/
+│
+├── static/                # CSS, JS, assets
+├── templates/            # HTML templates
+├── data/                 # PDFs and processed data
+├── models/               # NLP models / embeddings
+├── admin/                # Admin dashboard
+│
+├── app.py                # Main Flask application
+├── preprocess.py         # PDF processing
+├── qa_generator.py       # Q&A generation
+├── chatbot.py            # Query handling logic
+├── requirements.txt      # Dependencies
+└── README.md
+
+
+Installation & Setup
+1️⃣ Clone the Repository
+git clone https://github.com/ombakle/MineBot-An-Intelligent-AI-Powered-Chatbot-to-Simplify-Mining-Regulations-and-Safety-Compliance.git
+cd MineBot-An-Intelligent-AI-Powered-Chatbot-to-Simplify-Mining-Regulations-and-Safety-Compliance
+
+2️⃣ Create Virtual Environment
+python -m venv venv
+
+Activate it:
+Windows
+venv\Scripts\activate
+Mac/Linux
+source venv/bin/activate
+
+3️⃣ Install Dependencies
+pip install -r requirements.txt
+
+4️⃣ Run Data Processing (Optional)
+
+If you want to regenerate the knowledge base:
+python preprocess.py
+python qa_generator.py
+
+5️⃣ Run the Application
+python app.py
+
+6️⃣ Open in Browser
+http://127.0.0.1:5000/
