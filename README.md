@@ -94,14 +94,14 @@ Processes user queries and retrieves the best matching responses.
 * Monitor system usage
 
 8. Workflow
-1. Upload regulatory documents (PDFs)
-2. Extract and preprocess text
-3. Generate Q&A dataset
-4. Store embeddings for semantic search
-5. User submits query (text/voice)
-6. System processes and converts query to vector
-7. Best match is retrieved
-8. Response displayed or spoken
+* Upload regulatory documents (PDFs)
+* Extract and preprocess text
+* Generate Q&A dataset
+* Store embeddings for semantic search
+* User submits query (text/voice)
+* System processes and converts query to vector
+* Best match is retrieved
+* Response displayed or spoken
 
 9. Features
 * Interactive chatbot interface
@@ -149,12 +149,12 @@ MineBot demonstrates how AI and NLP can be applied to simplify complex regulator
 * Sentence Transformers Research Papers
 * NLP and Semantic Search Techniques
 
-16. Author
-    Om Bakle
+16. Author: 
+Om Bakle
 
-18. Contact
+18. Contact: 
     For further information or collaboration inquiries, please reach out via email.
 
-19. Final Remark
+19. Final Remark: 
     MineBot represents a significant step toward digitizing and simplifying regulatory compliance using artificial intelligence, making critical information more accessible, efficient, and user-friendly. The project structure and implementation details have also been provided to ensure clarity, reproducibility, and ease of further development and enhancement.
 
