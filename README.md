@@ -150,11 +150,11 @@ MineBot demonstrates how AI and NLP can be applied to simplify complex regulator
 * NLP and Semantic Search Techniques
 
 16. Author
-Om Bakle
+    Om Bakle
 
-17. Contact
-For further information or collaboration inquiries, please reach out via email.
+18. Contact
+    For further information or collaboration inquiries, please reach out via email.
 
-18. Final Remark
-MineBot represents a significant step toward digitizing and simplifying regulatory compliance using artificial intelligence, making critical information more accessible, efficient, and user-friendly.
+19. Final Remark
+    MineBot represents a significant step toward digitizing and simplifying regulatory compliance using artificial intelligence, making critical information more accessible, efficient, and user-friendly. The project structure and implementation details have also been provided to ensure clarity, reproducibility, and ease of further development and enhancement.
 
