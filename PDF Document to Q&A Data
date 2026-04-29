@@ -1,0 +1,69 @@
+import PyPDF2
+import pandas as pd
+import spacy
+from transformers import pipeline
+
+def extract_text_from_pdf(pdf_path): #Provide PDF documnet path
+    """
+    Extract text from a PDF file.
+    """
+    text = ""
+    with open(pdf_path, "rb") as pdf_file:
+        reader = PyPDF2.PdfReader(pdf_file)
+        for page in reader.pages:
+            text += page.extract_text()
+    return text
+
+def split_into_sentences(text):
+    """
+    Split text into sentences using spaCy.
+    """
+    nlp = spacy.load("en_core_web_sm")
+    doc = nlp(text)
+    sentences = [sent.text.strip() for sent in doc.sents if len(sent.text.strip()) > 10]
+    return sentences
+
+def generate_questions(sentences):
+    """
+    Generate questions from sentences using Hugging Face's transformers pipeline.
+    """
+    # Load a model fine-tuned for question generation
+    question_generator = pipeline(
+        "text2text-generation",
+        model="valhalla/t5-small-qg-prepend"  # Use a model fine-tuned for question generation
+    )
+    questions_and_answers = []
+
+    for sentence in sentences[:10]:  # Limit to 10 questions
+        try:
+            # Generate a question for the given sentence
+            qa = question_generator(f"generate question: {sentence}", max_length=64, num_return_sequences=1)
+            questions_and_answers.append({"Question": qa[0]["generated_text"], "Answer": sentence})
+        except Exception as e:
+            print(f"Error generating question for sentence: {sentence}\n{e}")
+
+    return questions_and_answers
+
+def save_to_csv(qna_pairs, csv_path):
+    """
+    Save the Q&A pairs to a CSV file.
+    """
+    df = pd.DataFrame(qna_pairs)
+    df.to_csv(csv_path, index=False)
+    print(f"Q&A saved to {csv_path}")
+
+# Main execution
+pdf_path = "/content/data.pdf"  # Replace with your PDF file path
+csv_path = "/content/questions_and_answers.csv"
+
+# Step 1: Extract text from the PDF
+text = extract_text_from_pdf(pdf_path)
+
+# Step 2: Split the text into sentences
+sentences = split_into_sentences(text)
+
+# Step 3: Generate questions and answers
+qna_pairs = generate_questions(sentences)
+
+# Step 4: Save the questions and answers to a CSV file
+save_to_csv(qna_pairs, csv_path)
